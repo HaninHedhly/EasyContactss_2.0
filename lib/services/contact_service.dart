@@ -1,40 +1,39 @@
 import '../models/contact.dart';
-import 'database_helper.dart';
+import '../database/db_helper.dart';
 
 class ContactService {
-  final dbHelper = DatabaseHelper();
-
-  // Ajouter un contact
+  // Add a contact (returns the inserted row id)
   Future<int> addContact(Contact contact) async {
-    final db = await dbHelper.database;
-    return await db.insert('contacts', contact.toMap());
+    return await DBHelper.insertContact(
+      contact.name,
+      contact.phone,
+      contact.email,
+    );
   }
 
-  // Récupérer tous les contacts
+  // Get all contacts as a List<Contact>
   Future<List<Contact>> getContacts() async {
-    final db = await dbHelper.database;
-    final res = await db.query('contacts');
-    return res.map((c) => Contact.fromMap(c)).toList();
+    final rows = await DBHelper.getContacts(); // List<Map<String, dynamic>>
+    return rows.map((m) => Contact.fromMap(m)).toList();
   }
 
-  // Modifier un contact
+  // Update a contact (requires contact.id to be non-null)
   Future<int> updateContact(Contact contact) async {
-    final db = await dbHelper.database;
-    return await db.update(
-      'contacts',
-      contact.toMap(),
-      where: 'id = ?',
-      whereArgs: [contact.id],
+    if (contact.id == null) {
+      throw ArgumentError('Contact id must not be null for update.');
+    }
+    return await DBHelper.updateContact(
+      contact.id!,
+      contact.name,
+      contact.phone,
+      contact.email,
     );
   }
 
-  // Supprimer
+  // Delete a contact by id
   Future<int> deleteContact(int id) async {
-    final db = await dbHelper.database;
-    return await db.delete(
-      'contacts',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await DBHelper.deleteContact(id);
   }
 }
+
+

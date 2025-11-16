@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../database/db_helper.dart';
+import 'edit_contact_page.dart';
+import 'delete_contact_page.dart';
 
 class ContactsHomePage extends StatefulWidget {
   const ContactsHomePage({super.key});
@@ -9,29 +11,10 @@ class ContactsHomePage extends StatefulWidget {
 }
 
 class _ContactsHomePageState extends State<ContactsHomePage> {
-  // Liste des contacts récupérés depuis SQLite
-  List<Map<String, dynamic>> contacts = [];
-
-  // Contrôleurs
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    loadContacts();
-  }
-
-  // Charger les contacts depuis SQLite
-  Future<void> loadContacts() async {
-    final data = await DBHelper.getContacts();
-    setState(() {
-      contacts = data;
-    });
-  }
-
-  // Ajouter un contact dans SQLite
   Future<void> addContact() async {
     String name = nameController.text.trim();
     String phone = phoneController.text.trim();
@@ -39,7 +22,7 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
 
     if (name.isEmpty || phone.isEmpty || email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+        const SnackBar(content: Text("Veuillez remplir tous les champs")),
       );
       return;
     }
@@ -50,8 +33,7 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
     phoneController.clear();
     emailController.clear();
 
-    // Recharger la liste depuis la base
-    loadContacts();
+    setState(() {}); // refresh page
   }
 
   @override
@@ -60,18 +42,19 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
         backgroundColor: Colors.purple,
-        title: const Text('Mes Contacts'),
+        title: const Text("Mes Contacts 💖"),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // ---------- Add Contact Form ----------
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                labelText: 'Nom du contact',
-                prefixIcon: Icon(Icons.person, color: Color.fromARGB(255, 215, 142, 228)),
+                labelText: "Nom",
+                prefixIcon: Icon(Icons.person, color: Color(0xFFD78EE4)),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -80,8 +63,8 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
               controller: phoneController,
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
-                labelText: 'Téléphone',
-                prefixIcon: Icon(Icons.phone, color: Color.fromARGB(255, 209, 155, 219)),
+                labelText: "Téléphone",
+                prefixIcon: Icon(Icons.phone, color: Color(0xFFD19BDB)),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -90,8 +73,8 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email, color: Color.fromARGB(255, 203, 140, 214)),
+                labelText: "Email",
+                prefixIcon: Icon(Icons.email, color: Color(0xFFCB8CD6)),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -99,39 +82,46 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
             ElevatedButton.icon(
               onPressed: addContact,
               icon: const Icon(Icons.add),
-              label: const Text('Ajouter'),
+              label: const Text("Ajouter"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 197, 129, 209),
-                foregroundColor: Colors.white,
-              ),
+                  backgroundColor: const Color(0xFFC581D1),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  textStyle: const TextStyle(fontSize: 18)),
             ),
             const SizedBox(height: 20),
 
-            Expanded(
-              child: contacts.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'Aucun contact ajouté 🩷',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: contacts.length,
-                      itemBuilder: (context, index) {
-                        final contact = contacts[index];
-                        return Card(
-                          color: Colors.purple[100],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.person, color: Color.fromARGB(255, 204, 149, 213)),
-                            title: Text(contact['name']),
-                            subtitle: Text('${contact['phone']} • ${contact['email']}'),
-                          ),
-                        );
-                      },
-                    ),
+            // ---------- Big Buttons ----------
+            ElevatedButton.icon(
+              icon: const Icon(Icons.edit),
+              label: const Text("Modifier un contact"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditListPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD78EE4),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 15),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.delete),
+              label: const Text("Supprimer un contact"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const DeleteListPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFA5C1),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
             ),
           ],
         ),
@@ -139,6 +129,9 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
     );
   }
 }
+
+
+
 
 
 

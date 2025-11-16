@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'signup_page.dart';
-import 'home_page.dart';
+import 'screens/signup_page.dart';
+import 'screens/home_page.dart';
 
 void main() {
   runApp(const MyApp());
