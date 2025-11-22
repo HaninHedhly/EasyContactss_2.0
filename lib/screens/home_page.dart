@@ -7,7 +7,7 @@ class ContactsHomePage extends StatefulWidget {
   const ContactsHomePage({super.key});
 
   @override
-State<ContactsHomePage> createState() => _ContactsHomePageState();
+  State<ContactsHomePage> createState() => _ContactsHomePageState();
 }
 
 class _ContactsHomePageState extends State<ContactsHomePage> {
@@ -32,28 +32,61 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
     }
   }
 
+ 
   Future<void> addContact() async {
-    String name = nameController.text.trim();
-    String phone = phoneController.text.trim();
-    String email = emailController.text.trim();
+    final String name = nameController.text.trim();
+    final String phone = phoneController.text.trim();
+    final String email = emailController.text.trim();
 
     if (name.isEmpty || phone.isEmpty || email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Veuillez remplir tous les champs"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar(message: "Veuillez remplir tous les champs", backgroundColor: Colors.red);
       return;
     }
 
-    await DBHelper.insertContact(name, phone, email);
-    nameController.clear();
-    phoneController.clear();
-    emailController.clear();
+    // Validation email
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(email)) {
+      _showSnackBar(message: "Veuillez entrer un email valide", backgroundColor: Colors.orange);
+      return;
+    }
 
-    _loadContacts(); // Rafraîchir la liste
+    // Validation téléphone (accepte espaces et + au début)
+    final phoneRegex = RegExp(r'^\+?[0-9]{8,15}$');
+    if (!phoneRegex.hasMatch(phone.replaceAll(RegExp(r'\s+'), ''))) {
+      _showSnackBar(message: "Numéro de téléphone invalide", backgroundColor: Colors.orange);
+      return;
+    }
+
+    try {
+      await DBHelper.insertContact(name, phone, email);
+
+      nameController.clear();
+      phoneController.clear();
+      emailController.clear();
+
+      _showSnackBar(message: "Contact ajouté avec succès !", backgroundColor: Colors.green);
+
+      await _loadContacts();
+    } catch (e) {
+      _showSnackBar(message: "Erreur lors de l'ajout du contact", backgroundColor: Colors.red);
+      debugPrint("Erreur addContact : $e");
+    }
   }
+
+  // Méthode utilitaire pour afficher les messages
+  void _showSnackBar({required String message, required Color backgroundColor}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+  // ────────────────────────────────
 
   @override
   void dispose() {
@@ -124,7 +157,7 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: addContact,
+                          onPressed: addContact, // ← bien reliée ici
                           icon: const Icon(Icons.add),
                           label: const Text("Ajouter le contact", style: TextStyle(fontSize: 16)),
                           style: ElevatedButton.styleFrom(
@@ -179,30 +212,24 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Bouton Modifier
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.blue),
                                     onPressed: () async {
                                       await Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (_) => EditListPage(),
-                                        ),
+                                        MaterialPageRoute(builder: (_) => EditListPage()),
                                       );
-                                      _loadContacts(); // Rafraîchir après modification
+                                      _loadContacts();
                                     },
                                   ),
-                                  // Bouton Supprimer
                                   IconButton(
                                     icon: const Icon(Icons.delete, color: Colors.red),
                                     onPressed: () async {
                                       await Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (_) => DeleteListPage(),
-                                        ),
+                                        MaterialPageRoute(builder: (_) => DeleteListPage()),
                                       );
-                                      _loadContacts(); // Rafraîchir après suppression
+                                      _loadContacts();
                                     },
                                   ),
                                 ],

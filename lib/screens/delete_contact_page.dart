@@ -14,6 +14,7 @@ class _DeleteListPageState extends State<DeleteListPage> {
 
   @override
   void initState() {
+    
     super.initState();
     loadContacts();
   }
